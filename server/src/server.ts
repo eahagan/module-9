@@ -1,12 +1,9 @@
-const express = require('express');
-const dotenv = require('dotenv');
-const fs = require('fs/promises');
-const path = require('path');
-const { v4: uuidv4 } = require('uuid');
-const axios = require('axios');
-
-// Type-only import for TypeScript type support
-import type { Request, Response } from 'express';
+import express, { Request, Response } from 'express';
+import dotenv from 'dotenv';
+import fs from 'fs/promises';
+import path from 'path';
+import { v4 as uuidv4 } from 'uuid';
+import axios from 'axios';
 
 // Load environment variables
 dotenv.config();
@@ -28,7 +25,7 @@ app.use(express.static(path.join(__dirname, '../client/dist')));
 
 // === Routes ===
 
-// Get search history
+// GET search history
 app.get('/api/weather/history', async (_req: Request, res: Response) => {
   try {
     const data = await fs.readFile(HISTORY_FILE, 'utf-8');
@@ -39,7 +36,7 @@ app.get('/api/weather/history', async (_req: Request, res: Response) => {
   }
 });
 
-// Fetch weather and save city
+// POST new city and get forecast
 app.post('/api/weather', async (req: Request, res: Response) => {
   const { city } = req.body;
   if (!city) return res.status(400).json({ error: 'City name is required' });
@@ -80,13 +77,13 @@ app.post('/api/weather', async (req: Request, res: Response) => {
   }
 });
 
-// Delete a city from search history by ID
+// DELETE city by ID
 app.delete('/api/weather/history/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
 
   try {
     const data = await fs.readFile(HISTORY_FILE, 'utf-8');
-    let history = JSON.parse(data);
+    const history = JSON.parse(data);
 
     const updatedHistory = history.filter((entry: { id: string }) => entry.id !== id);
 
@@ -102,7 +99,7 @@ app.delete('/api/weather/history/:id', async (req: Request, res: Response) => {
   }
 });
 
-// Fallback route
+// Fallback route to frontend
 app.get('*', (_req: Request, res: Response) => {
   res.sendFile(path.join(__dirname, '../client/dist/index.html'));
 });
@@ -111,6 +108,7 @@ app.get('*', (_req: Request, res: Response) => {
 app.listen(PORT, () => {
   console.log(`✅ Server is running at http://localhost:${PORT}`);
 });
+
 
 
 
