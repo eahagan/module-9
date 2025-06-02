@@ -70,12 +70,61 @@ const deleteCityFromHistory = async (id: string) => {
   });
 };
 
-/*
+// Import styles if needed
+import './style.css';
 
-Render Functions
+// --- Utility + Fetch Functions ---
+async function deleteCity(id: string): Promise<void> {
+  try {
+    const res = await fetch(`/api/weather/history/${id}`, {
+      method: 'DELETE',
+    });
+    if (!res.ok) throw new Error('Failed to delete city');
+    await loadHistory();
+  } catch (err) {
+    console.error(err);
+  }
+}
 
-*/
+async function loadHistory(): Promise<void> {
+  try {
+    const res = await fetch('/api/weather/history');
+    const cities = await res.json();
+    renderHistory(cities);
+  } catch (err) {
+    console.error('Failed to load history', err);
+  }
+}
 
+// --- UI Function ---
+function renderHistory(cities: { id: string; city: string }[]) {
+  const historyEl = document.getElementById('history');
+  if (!historyEl) return;
+
+  historyEl.innerHTML = '';
+
+  cities.forEach(({ id, city }) => {
+    const div = document.createElement('div');
+    div.className = 'list-group-item d-flex justify-content-between align-items-center';
+
+    div.innerHTML = `
+      <span>${city}</span>
+      <button class="btn btn-sm btn-danger" data-id="${id}">Delete</button>
+    `;
+
+    div.querySelector('button')?.addEventListener('click', async () => {
+      await deleteCity(id);
+    });
+
+    historyEl.appendChild(div);
+  });
+}
+
+// --- Initialize on Page Load ---
+document.addEventListener('DOMContentLoaded', () => {
+  loadHistory();
+});
+ 
 const renderCurrentWeather = (currentWeather: any): void => {
   const { city, date, icon, iconDescription, tempF, windSpeed, humidity } =
     currentWeather;
